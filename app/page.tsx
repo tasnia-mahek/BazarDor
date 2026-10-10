@@ -1,5 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { createAuthClient } from "better-auth/react";
 import {
   getProducts,
   getCategories,
@@ -7,6 +11,8 @@ import {
   formatUnit,
   type Product,
 } from "@/lib/api";
+
+const authClient = createAuthClient();
 
 const CONTAINER = "mx-auto w-full max-w-[1152px] px-4 sm:px-6";
 
@@ -57,20 +63,40 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
+function CardSkeleton() {
+  return (
+    <div className="min-h-[116px] animate-pulse rounded-2xl border border-[#e2e9e2] bg-[#fbfdfb] p-4">
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 rounded-xl bg-[#e4ebe4]" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-24 rounded bg-[#e4ebe4]" />
+          <div className="h-3 w-16 rounded bg-[#e4ebe4]" />
+        </div>
+      </div>
+      <div className="mt-4 flex items-end justify-between">
+        <div className="h-6 w-20 rounded bg-[#e4ebe4]" />
+        <div className="h-5 w-14 rounded-full bg-[#e4ebe4]" />
+      </div>
+    </div>
+  );
+}
+
 function ProductSection({
   title,
   subtitle,
   products,
   id,
   kind = "default",
+  loading,
 }: {
   title: string;
   subtitle?: string;
   products: Product[];
   id?: string;
   kind?: "up" | "down" | "default";
+  loading: boolean;
 }) {
-  if (!products.length) return null;
+  if (!loading && !products.length) return null;
 
   return (
     <section id={id} className="mt-10 scroll-mt-4">
@@ -85,24 +111,44 @@ function ProductSection({
         )}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
+          : products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
       </div>
     </section>
   );
 }
 
-export default async function HomePage() {
-  let products: Product[] = [];
-  let categories: Awaited<ReturnType<typeof getCategories>> = [];
-  let apiError = false;
+export default function HomePage() {
+  const { data: session, isPending } = authClient.useSession();
+  const user = session?.user ?? null;
 
-  try {
-    [products, categories] = await Promise.all([getProducts(), getCategories()]);
-  } catch {
-    apiError = true;
-  }
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Awaited<ReturnType<typeof getCategories>>>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString("bn-BD", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    );
+
+    Promise.all([getProducts(), getCategories()])
+      .then(([p, c]) => {
+        setProducts(p);
+        setCategories(c);
+      })
+      .catch(() => setApiError(true))
+      .finally(() => setLoading(false));
+  }, []);
 
   const risers = products
     .filter((product) => product.change.dir === "up")
@@ -118,9 +164,9 @@ export default async function HomePage() {
     <main className="min-h-screen bg-[#f0f5f1] text-[#253329]">
       <header className="border-b border-[#e8eee8] bg-[#fbfdfb]">
         <div className={CONTAINER}>
-          <div className="flex h-[64px] items-center justify-between">
+          <div className="flex h-[68px] items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-[40px] w-[40px] items-center justify-center overflow-hidden rounded-[10px] bg-[#078b45]">
+              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[10px] bg-[#078b45]">
                 <Image
                   src="/logo-icon.png"
                   alt="বাজার দর"
@@ -134,23 +180,58 @@ export default async function HomePage() {
                 <span className="text-[20px] font-bold leading-[1.15] text-[#1d2b22]">
                   বাজার দর
                 </span>
-                <span className="mt-[3px] text-[12px] leading-none text-[#69746b]">
-                  শুক্রবার, ১০ অক্টোবর, ২০২৬
+                <span className="mt-[3px] min-h-[12px] text-[12px] leading-none text-[#69746b]">
+                  {today}
                 </span>
               </span>
             </Link>
-            <div className="flex items-center gap-2 text-[14px] text-[#303b32]">
-              <span className="flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#e8ece8] text-[16px]">
-                👤
-              </span>
-              <span>Rezwan</span>
-              <span className="text-[12px] text-[#818981]">⌄</span>
-            </div>
+
+            {isPending ? (
+              <div className="flex items-center gap-4">
+                <div className="h-5 w-14 animate-pulse rounded bg-[#e4ebe4]" />
+                <div className="h-10 w-[92px] animate-pulse rounded-lg bg-[#e4ebe4]" />
+              </div>
+            ) : user ? (
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-[14px] text-[#303b32] transition hover:bg-[#f0f5f1]"
+              >
+                <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#e8ece8] text-[16px]">
+                  {user.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.image}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    "👤"
+                  )}
+                </span>
+                <span className="max-w-[140px] truncate font-medium">{user.name}</span>
+                <span className="text-[12px] text-[#818981]">⌄</span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-5">
+                <Link
+                  href="/signin"
+                  className="text-[14px] font-semibold text-[#1d2b22] transition hover:text-[#078b45]"
+                >
+                  সাইন ইন
+                </Link>
+                <Link
+                  href="/signup"
+                  className="rounded-lg bg-[#078b45] px-5 py-2.5 text-[14px] font-bold text-white shadow-md shadow-[#078b45]/30 transition hover:bg-[#08763d]"
+                >
+                  সাইন আপ
+                </Link>
+              </div>
+            )}
           </div>
         </div>
         <nav className="border-t border-[#f0f3ef]">
           <div
-            className={`${CONTAINER} flex items-center gap-6 overflow-x-auto py-3 text-[15px] whitespace-nowrap`}
+            className={`${CONTAINER} flex min-h-[48px] items-center gap-6 overflow-x-auto py-3 text-[15px] whitespace-nowrap`}
           >
             <Link href="/" className="font-semibold text-[#21834a]">🏠 হোম</Link>
             {categories.map((category) => (
@@ -166,7 +247,7 @@ export default async function HomePage() {
         </nav>
       </header>
 
-      <div className="overflow-hidden border-b border-[#e3eae3] bg-[#f7faf7]">
+      <div className="min-h-[42px] overflow-hidden border-b border-[#e3eae3] bg-[#f7faf7]">
         <div className="ticker-track flex w-max items-center gap-8 whitespace-nowrap py-2.5 text-[14px] text-[#58645a]">
           {[...products, ...products].map((product, index) => (
             <span key={`${product.id}-${index}`} className="flex items-center gap-2">
@@ -193,8 +274,8 @@ export default async function HomePage() {
       <div className={`${CONTAINER} pb-14`}>
         <section className="mt-6 grid min-h-[260px] grid-cols-1 items-center gap-6 overflow-hidden rounded-3xl border border-[#e4ebe4] bg-[#fbfdfb] px-6 py-8 sm:px-10 md:grid-cols-[1.5fr_1fr]">
           <div className="min-w-0">
-            <p className="inline-flex rounded-full bg-[#e7f5eb] px-3 py-1.5 text-[13px] font-semibold leading-none text-[#23874a]">
-              শুক্রবার, ১০ অক্টোবর, ২০২৬
+            <p className="inline-flex min-h-[28px] rounded-full bg-[#e7f5eb] px-3 py-1.5 text-[13px] font-semibold leading-none text-[#23874a]">
+              {today}
             </p>
             <h1 className="mt-4 text-[30px] font-extrabold leading-[1.25] tracking-[-0.5px] text-[#202c23] sm:text-[40px]">
               আজকের বাজারের দাম এক নজরে
@@ -231,13 +312,14 @@ export default async function HomePage() {
           </div>
         ) : (
           <>
-            <ProductSection title="আজ দাম বেড়েছে" products={risers} kind="up" />
-            <ProductSection title="আজ দাম কমেছে" products={fallers} kind="down" />
+            <ProductSection title="আজ দাম বেড়েছে" products={risers} kind="up" loading={loading} />
+            <ProductSection title="আজ দাম কমেছে" products={fallers} kind="down" loading={loading} />
             <ProductSection
               id="সব-পণ্য"
               title="সব পণ্য"
               subtitle="ছোট্ট একটি তালিকায় নিত্যপ্রয়োজনীয় পণ্যের আজকের দাম"
               products={products}
+              loading={loading}
             />
           </>
         )}
