@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Toaster } from "sonner";
 import { createAuthClient } from "better-auth/react";
+import UserMenu from "@/components/UserMenu";
 import {
   getProducts,
   getCategories,
@@ -134,21 +135,7 @@ export default function CategoryPage() {
                 <Pulse className="h-10 w-[92px]" />
               </div>
             ) : user ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-[14px] text-[#303b32] transition hover:bg-[#f0f5f1]"
-              >
-                <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#e8ece8] text-[16px]">
-                  {user.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.image} alt={user.name} className="h-full w-full object-cover" />
-                  ) : (
-                    "👤"
-                  )}
-                </span>
-                <span className="max-w-[140px] truncate font-medium">{user.name}</span>
-                <span className="text-[12px] text-[#818981]">⌄</span>
-              </Link>
+              <UserMenu user={user} />
             ) : (
               <div className="flex items-center gap-5">
                 <Link href="/signin" className="text-[14px] font-semibold text-[#1d2b22] transition hover:text-[#078b45]">

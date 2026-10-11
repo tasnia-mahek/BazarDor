@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createAuthClient } from "better-auth/react";
+import UserMenu from "@/components/UserMenu";
 import {
   getProducts,
   getCategories,
@@ -196,25 +197,7 @@ export default function HomePage() {
                 <div className="h-10 w-[92px] animate-pulse rounded-lg bg-[#e4ebe4]" />
               </div>
             ) : user ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-[14px] text-[#303b32] transition hover:bg-[#f0f5f1]"
-              >
-                <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#e8ece8] text-[16px]">
-                  {user.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={user.image}
-                      alt={user.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    "👤"
-                  )}
-                </span>
-                <span className="max-w-[140px] truncate font-medium">{user.name}</span>
-                <span className="text-[12px] text-[#818981]">⌄</span>
-              </Link>
+              <UserMenu user={user} />
             ) : (
               <div className="flex items-center gap-5">
                 <Link
@@ -291,14 +274,13 @@ export default function HomePage() {
               আজকের বাজারের দাম এক নজরে
             </h1>
             <p className="mt-4 max-w-[520px] text-[15px] leading-[1.65] text-[#778078]">
-              চাল, ডাল, তেল, সবজি, মাছ, মাংস, ডিম ও মসলার দাম — বাজারভিত্তিক
-              নির্ভরযোগ্য, সহজ, সর্বশেষ-সর্বাধিক তথ্য পেতে বাজার দেখুন।
+              চাল, ডাল, তেল, সবজি, মাছ, মাংস, ডিম ও মসলার দাম — বাজারভিত্তিক নির্ভরযোগ্য, গড়, সর্বনিম্ন-সর্বাধিক এবং দামের পরিবর্তন এক জায়গায়।
             </p>
             <a
               href="#সব-পণ্য"
               className="mt-6 inline-flex rounded-lg bg-[#078b45] px-5 py-3 text-[15px] font-bold text-white shadow-sm transition hover:bg-[#08763d]"
             >
-              সব দাম দেখুন →
+              সব পণ্য দেখুন →
             </a>
           </div>
           <div className="flex items-center justify-center">
