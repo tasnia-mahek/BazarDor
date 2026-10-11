@@ -11,8 +11,10 @@ import {
   getProducts,
   getCategories,
   formatPrice,
-  formatUnit,
+  formatPct,
+  unitShort,
   type Product,
+  type Category,
 } from "@/lib/api";
 
 const authClient = createAuthClient();
@@ -25,10 +27,8 @@ export default function ProfilePage() {
   const user = session?.user ?? null;
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Awaited<ReturnType<typeof getCategories>>>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [today, setToday] = useState("");
-  const [name, setName] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
@@ -54,33 +54,6 @@ export default function ProfilePage() {
       router.replace("/signin");
     }
   }, [isPending, session, router]);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextName = (name ?? user?.name ?? "").trim();
-
-    if (!nextName) {
-      toast.error("আপনার নাম লিখুন");
-      return;
-    }
-    if (nextName === user?.name) {
-      toast.error("নামে কোনো পরিবর্তন নেই");
-      return;
-    }
-
-    setSaving(true);
-    const { error } = await authClient.updateUser({ name: nextName });
-    setSaving(false);
-
-    if (error) {
-      toast.error(error.message || "নাম আপডেট করা যায়নি");
-      return;
-    }
-
-    setName(null);
-    toast.success("প্রোফাইল আপডেট হয়েছে");
-    router.refresh();
-  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -140,13 +113,13 @@ export default function ProfilePage() {
         </div>
         <nav className="border-t border-[#f0f3ef]">
           <div
-            className={`${CONTAINER} flex min-h-[48px] items-center gap-8 overflow-x-auto py-3.5 text-[14px] whitespace-nowrap`}
+            className={`${CONTAINER} flex min-h-[48px] items-center gap-3 overflow-x-auto py-2.5 text-[14px] whitespace-nowrap`}
           >
             {categories.map((category) => (
               <Link
                 key={category.id}
                 href={`/category/${category.slug}`}
-                className="text-[#48564b] transition hover:text-[#21834a]"
+                className="rounded-full px-4 py-1.5 text-[#48564b] transition hover:text-[#21834a]"
               >
                 {category.icon} {category.nameBn}
               </Link>
@@ -166,7 +139,7 @@ export default function ProfilePage() {
               <span>{product.image}</span>
               <span>{product.nameBn}</span>
               <span>
-                {formatPrice(product.today)} টাকা/{formatUnit(product.unit)}
+                {formatPrice(product.today)} টাকা/{unitShort(product.unit)}
               </span>
               <span
                 className={
@@ -178,7 +151,7 @@ export default function ProfilePage() {
                 }
               >
                 {product.change.dir === "up" ? "▲" : product.change.dir === "down" ? "▼" : "—"}
-                {Math.abs(product.change.pct)}%
+                {formatPct(product.change.pct)}%
               </span>
             </span>
           ))}
@@ -251,32 +224,21 @@ export default function ProfilePage() {
                 <div className="h-10 w-full animate-pulse rounded-lg bg-[#cfe3d4]" />
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="mt-5 space-y-4" noValidate>
+              <div className="mt-5 space-y-4">
                 <div>
-                  <label
-                    htmlFor="profile-name"
-                    className="mb-1.5 block text-[14px] font-medium text-[#253329]"
-                  >
-                    নাম
-                  </label>
-                  <input
-                    id="profile-name"
-                    name="name"
-                    type="text"
-                    value={name ?? user.name}
-                    onChange={(event) => setName(event.target.value)}
-                    className="h-10 w-full rounded-lg border border-[#e2e9e2] bg-white px-3 text-[14px] text-[#202b23] outline-none placeholder:text-[#9aa39b] focus:border-[#078b45] focus:ring-2 focus:ring-[#078b45]/15"
-                  />
+                  <p className="mb-1.5 text-[14px] font-medium text-[#253329]">নাম</p>
+                  <div className="flex h-10 w-full items-center rounded-lg border border-[#e2e9e2] bg-white px-3 text-[14px] text-[#202b23]">
+                    {user.name}
+                  </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="h-10 w-full rounded-lg bg-[#078b45] text-[14px] font-bold text-white shadow-md shadow-[#078b45]/30 transition hover:bg-[#08763d] disabled:opacity-60"
+                <Link
+                  href="/profile/update"
+                  className="flex h-10 w-full items-center justify-center rounded-lg bg-[#078b45] text-[14px] font-bold text-white shadow-md shadow-[#078b45]/30 transition hover:bg-[#08763d]"
                 >
-                  {saving ? "অপেক্ষা করুন..." : "আপডেট"}
-                </button>
-              </form>
+                  আপডেট
+                </Link>
+              </div>
             )}
           </div>
         </div>
