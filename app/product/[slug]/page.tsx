@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { Toaster, toast } from "sonner";
+import toast, { Toaster } from "react-hot-toast";
 import { createAuthClient } from "better-auth/react";
 import UserMenu from "@/components/UserMenu";
 import {
@@ -83,7 +83,7 @@ export default function ProductDetailsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-[#f0f5f1] text-[#253329]">
-      <Toaster richColors position="top-center" />
+      <Toaster position="top-center" />
 
       {/* Header */}
       <header className="border-b border-[#e8eee8] bg-[#fbfdfb]">
