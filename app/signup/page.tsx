@@ -62,7 +62,9 @@ export default function SignUpPage() {
           toast.success("সফলভাবে লগআউট হয়েছে");
           router.refresh();
         },
-        onError: () => toast.error("লগআউট করা যায়নি"),
+        onError: () => {
+          toast.error("লগআউট করা যায়নি");
+        },
       },
     });
   }

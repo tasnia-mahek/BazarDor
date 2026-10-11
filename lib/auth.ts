@@ -8,7 +8,10 @@ if (!mongodbUri) {
   throw new Error("MONGODB_URI is missing from .env.local");
 }
 
-const client = new MongoClient(mongodbUri);
+const client = new MongoClient(mongodbUri, {
+  secureProtocol: "TLSv1_2_method",
+});
+
 const db = client.db("bazardor");
 
 export const auth = betterAuth({

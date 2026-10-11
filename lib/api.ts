@@ -1,15 +1,6 @@
+const BASE_URL = "https://openapi.programming-hero.com/api/bazardor";
 
-const API_BASE_URLS = [
-  "https://api.api-store.workers.dev/api/bazardor",
-  "https://api.abcz.workers.dev/api/bazardor",
-];
-
-export type Market = {
-  market: string;
-  division: string;
-  min: number;
-  max: number;
-};
+export type Market = { market: string; division: string; min: number; max: number };
 
 export type Product = {
   id: number;
@@ -24,94 +15,53 @@ export type Product = {
   yesterday: number;
   lastWeek: number;
   lastMonth: number;
-  change: {
-    dir: "up" | "down" | "flat";
-    pct: number;
-  };
+  change: { dir: "up" | "down" | "flat"; pct: number };
   markets: Market[];
 };
 
-export type Category = {
-  id: string;
-  slug: string;
-  nameBn: string;
-  icon: string;
+export type Category = { id: string; slug: string; nameBn: string; icon: string };
+
+async function request<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as T;
+}
+
+export const getProducts = () => request<Product[]>("/products");
+export const getCategories = () => request<Category[]>("/categories");
+
+const bn = (n: number, opts?: Intl.NumberFormatOptions) => n.toLocaleString("bn-BD", opts);
+
+export const toBn = (n: number) => bn(n);
+
+export function formatPrice(n: number) {
+  return Number.isInteger(n)
+    ? bn(n)
+    : bn(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+export function formatPct(n: number) {
+  return bn(Math.abs(n), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
+const UNITS: Record<string, string> = {
+  kg: "প্রতি কেজি",
+  litre: "প্রতি লিটার",
+  liter: "প্রতি লিটার",
+  l: "প্রতি লিটার",
+  dozen: "প্রতি ডজন",
+  piece: "প্রতি পিস",
+  pcs: "প্রতি পিস",
+  pc: "প্রতি পিস",
 };
 
-async function fetchFromApi<T>(endpoint: string): Promise<T> {
-  let lastError: unknown;
-
-  for (const baseUrl of API_BASE_URLS) {
-    try {
-      const response = await fetch(`${baseUrl}${endpoint}`, {
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      return (await response.json()) as T;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  throw new Error(
-    `Unable to load BazarDor data from either API. ${
-      lastError instanceof Error ? lastError.message : ""
-    }`
-  );
+export function formatUnit(unit: string) {
+  const key = unit.trim().toLowerCase();
+  if (UNITS[key]) return UNITS[key];
+  return unit.startsWith("প্রতি") ? unit : `প্রতি ${unit}`;
 }
 
-export async function getProducts(): Promise<Product[]> {
-  const data = await fetchFromApi<Product[]>("/products");
-
-  if (!Array.isArray(data)) {
-    throw new Error("Invalid products response from API.");
-  }
-
-  return data;
-}
-
-export async function getProductBySlug(
-  slug: string
-): Promise<Product | undefined> {
-  const products = await getProducts();
-  return products.find((product) => product.slug === slug);
-}
-
-export async function getCategories(): Promise<Category[]> {
-  const data = await fetchFromApi<Category[]>("/categories");
-
-  if (!Array.isArray(data)) {
-    throw new Error("Invalid categories response from API.");
-  }
-
-  return data;
-}
-
-export async function getProductsByCategory(
-  slug: string
-): Promise<Product[]> {
-  const products = await getProducts();
-
-  return products.filter((product) => product.category === slug);
-}
-
-export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("bn-BD").format(price);
-}
-
-export function formatUnit(unit: string): string {
-  const units: Record<string, string> = {
-    kg: "প্রতি কেজি",
-    liter: "প্রতি লিটার",
-    litre: "প্রতি লিটার",
-    dozen: "প্রতি ডজন",
-    piece: "প্রতি পিস",
-    pcs: "প্রতি পিস",
-  };
-
-  return units[unit.toLowerCase()] ?? `প্রতি ${unit}`;
-}
+export const unitShort = (unit: string) => formatUnit(unit).replace("প্রতি ", "");

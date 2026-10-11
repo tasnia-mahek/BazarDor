@@ -8,8 +8,11 @@ import {
   getProducts,
   getCategories,
   formatPrice,
+  formatPct,
   formatUnit,
+  unitShort,
   type Product,
+  type Category,
 } from "@/lib/api";
 
 const authClient = createAuthClient();
@@ -56,7 +59,7 @@ function ProductCard({ product }: { product: Product }) {
         <span
           className={`mb-0.5 shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold leading-none ${changeClass}`}
         >
-          {arrow} {Math.abs(product.change.pct)}%
+          {arrow} {formatPct(product.change.pct)}%
         </span>
       </div>
     </Link>
@@ -126,7 +129,7 @@ export default function HomePage() {
   const user = session?.user ?? null;
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Awaited<ReturnType<typeof getCategories>>>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
   const [today, setToday] = useState("");
@@ -162,6 +165,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#f0f5f1] text-[#253329]">
+      {/* Header */}
       <header className="border-b border-[#e8eee8] bg-[#fbfdfb]">
         <div className={CONTAINER}>
           <div className="flex h-[68px] items-center justify-between">
@@ -231,14 +235,13 @@ export default function HomePage() {
         </div>
         <nav className="border-t border-[#f0f3ef]">
           <div
-            className={`${CONTAINER} flex min-h-[48px] items-center gap-6 overflow-x-auto py-3 text-[15px] whitespace-nowrap`}
+            className={`${CONTAINER} flex min-h-[48px] items-center gap-3 overflow-x-auto py-2.5 text-[14px] whitespace-nowrap`}
           >
-            <Link href="/" className="font-semibold text-[#21834a]">🏠 হোম</Link>
             {categories.map((category) => (
               <Link
                 key={category.id}
                 href={`/category/${category.slug}`}
-                className="text-[#48564b] transition hover:text-[#21834a]"
+                className="rounded-full px-4 py-1.5 text-[#48564b] transition hover:text-[#21834a]"
               >
                 {category.icon} {category.nameBn}
               </Link>
@@ -247,13 +250,19 @@ export default function HomePage() {
         </nav>
       </header>
 
+      {/* Ticker */}
       <div className="min-h-[42px] overflow-hidden border-b border-[#e3eae3] bg-[#f7faf7]">
-        <div className="ticker-track flex w-max items-center gap-8 whitespace-nowrap py-2.5 text-[14px] text-[#58645a]">
+        <div className="ticker-track flex w-max items-center whitespace-nowrap py-2.5 text-[14px] text-[#58645a]">
           {[...products, ...products].map((product, index) => (
-            <span key={`${product.id}-${index}`} className="flex items-center gap-2">
+            <span
+              key={`${product.id}-${index}`}
+              className="flex items-center gap-2 border-r border-[#e3eae3] px-4"
+            >
               <span>{product.image}</span>
               <span>{product.nameBn}</span>
-              <span>{formatPrice(product.today)} টাকা/{formatUnit(product.unit)}</span>
+              <span>
+                {formatPrice(product.today)} টাকা/{unitShort(product.unit)}
+              </span>
               <span
                 className={
                   product.change.dir === "up"
@@ -264,13 +273,14 @@ export default function HomePage() {
                 }
               >
                 {product.change.dir === "up" ? "▲" : product.change.dir === "down" ? "▼" : "—"}
-                {Math.abs(product.change.pct)}%
+                {formatPct(product.change.pct)}%
               </span>
             </span>
           ))}
         </div>
       </div>
 
+      {/* Body */}
       <div className={`${CONTAINER} pb-14`}>
         <section className="mt-6 grid min-h-[260px] grid-cols-1 items-center gap-6 overflow-hidden rounded-3xl border border-[#e4ebe4] bg-[#fbfdfb] px-6 py-8 sm:px-10 md:grid-cols-[1.5fr_1fr]">
           <div className="min-w-0">
@@ -325,6 +335,7 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* Footer */}
       <footer className="border-t border-[#e2e9e2] bg-[#fbfdfb]">
         <div
           className={`${CONTAINER} flex flex-col gap-1 py-5 text-[13px] leading-5 text-[#69746b] sm:flex-row sm:items-center sm:justify-between`}
