@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛒 বাজার দর (BazarDor)
+
+বাজার দর is a Bangla daily market-price tracker. It shows today's prices of rice, pulses, oil, vegetables, fish, meat, eggs and spices, how much each price changed since yesterday, and a market-by-market price table for every product.
+
+**Live site:** _add your Vercel link here_
+
+## Technologies Used
+
+- Next.js (App Router) and TypeScript
+- Tailwind CSS
+- Better Auth (email/password, Google and GitHub login)
+- MongoDB (Atlas)
+- react-hot-toast
+- Programming Hero BazarDor API
+
+## Key Features
+
+1. **Live price ticker:** an infinite scrolling strip with emoji, name, price per unit and ▲/▼ percentage change.
+2. **Price movers:** home page sections for the top 6 price risers and top 6 fallers, plus a full "সব পণ্য" grid.
+3. **Category pages:** browse products by category, sort by price (low to high or high to low), with skeleton loading and an empty state.
+4. **Product details (protected):** min, max and average price plus a market-wise price table for each product, for logged-in users only.
+5. **Authentication:** sign up, sign in, Google and GitHub login, hover user menu, profile page and sign out, with toast notifications.
+6. **Update profile:** change your name from a dedicated update page.
+7. **Custom 404 page** and a fully responsive design for mobile, tablet and desktop.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+git clone https://github.com/tasnia-mahek/BazarDor
+cd bazardor
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env.local` file in the project root:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+MONGODB_URI=
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).
